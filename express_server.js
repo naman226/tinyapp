@@ -1,10 +1,12 @@
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
+const cookies = require('cookie-parser');
 const PORT = 8080;
 const bodyParser = require("body-parser");
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
+app.use(cookies());
 const generateRandomString = function() {
   let sol = Math.random().toString(16).slice(2, 8);
   return sol;
@@ -28,7 +30,7 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 app.get("/urls/new", (req, res) => {
@@ -56,6 +58,15 @@ app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[newShortURL] = req.body.longURL;
   res.redirect(`/urls/${newShortURL}`);
 });
+app.post("/login", (req, res) => {
+  console.log(req.body);
+  res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/urls");
+})
 
 app.listen(PORT, () => {
   console.log(`Example app lisenting on port ${PORT}!`);
