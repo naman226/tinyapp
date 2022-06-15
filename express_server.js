@@ -33,6 +33,15 @@ for (let userId in users) {
  return null;
 };
 
+const userChecker = function(email) {
+  for (let userCheck in users ) {
+   if (users[userCheck].email === email) {
+    return false;
+    }
+  }
+return true;
+};
+
 app.get("/", (req, res) => {
   res.send("hello");
 });
@@ -88,10 +97,15 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
 const id = generateRandomId();
 const email = req.body.email;
-const password = req.body.password;  
-users[id] = { id, email, password };
+const password = req.body.password;
+const valid = userChecker(email);
+if ( !email || !password || !valid ) {   
+  res.status(400).send("Error 400 Bad Request");
+} else {
+  users[id] = { id, email, password };
 res.cookie("user_id", users[id].id);
 res.redirect("/urls");
+}
 });
 
 app.listen(PORT, () => {
