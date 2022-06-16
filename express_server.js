@@ -107,6 +107,10 @@ res.cookie("user_id", users[id].id);
 res.redirect("/urls");
 }
 });
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
+  res.render("urls_login", templateVars);
+})
 
 app.listen(PORT, () => {
   console.log(`Example app lisenting on port ${PORT}!`);
