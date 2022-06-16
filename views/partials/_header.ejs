@@ -17,10 +17,12 @@
           <div class="form-group mb-2">
             <button type="submit" class="btn btn-outline-dark">Log Out</button>
           </div>
-          </form>
-        <% } else { %> 
-         <a class="btn btn-outline-dark" href="/register">Register Now</a>
-         <a class="btn btn-outline-dark" href="/login">Login</a>
-      <%  } %>
-    </nav>
+        </form>
+        <% } else { %>
+          <div class="navbar-nav">
+            <a class="nav-item nav-link" href="/register">Register Now</a>
+            <a class="nav-item nav-link" href="/login">Login</a>
+            <% } %>
+          </div>
+  </nav>
 </header>

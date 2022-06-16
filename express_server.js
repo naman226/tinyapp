@@ -7,7 +7,8 @@ const bodyParser = require("body-parser");
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
 app.use(cookies());
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({ extended: false }));
+
 const generateRandomString = function() {
   let sol = Math.random().toString(16).slice(2, 8);
   return sol;
@@ -25,21 +26,21 @@ const urlDatabase = {
 const users = {};
 
 const getUserByEmail = function(email) {
-for (let userId in users) {
- if (users[userId].email === email ) {
-  return users[userId];
+  for (let userId in users) {
+    if (users[userId].email === email) {
+      return users[userId];
+    }
   }
- }
- return null;
+  return null;
 };
 
 const userChecker = function(email) {
-  for (let userCheck in users ) {
-   if (users[userCheck].email === email) {
-    return false;
+  for (let userCheck in users) {
+    if (users[userCheck].email === email) {
+      return false;
     }
   }
-return true;
+  return true;
 };
 
 app.get("/", (req, res) => {
@@ -82,9 +83,14 @@ app.post("/urls/:shortURL", (req, res) => {
   res.redirect(`/urls/${newShortURL}`);
 });
 app.post("/login", (req, res) => {
+  const valid = userChecker(req.body.email);
   const result = getUserByEmail(req.body.email);
-  res.cookie("user_id", result.id);
-  res.redirect("/urls");
+  if (!valid && result.password === req.body.password) {
+    res.cookie("user_id", result.id);
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("Error 403 Bad Request");
+  }
 });
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
@@ -95,22 +101,22 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 app.post("/register", (req, res) => {
-const id = generateRandomId();
-const email = req.body.email;
-const password = req.body.password;
-const valid = userChecker(email);
-if ( !email || !password || !valid ) {   
-  res.status(400).send("Error 400 Bad Request");
-} else {
-  users[id] = { id, email, password };
-res.cookie("user_id", users[id].id);
-res.redirect("/urls");
-}
+  const id = generateRandomId();
+  const email = req.body.email;
+  const password = req.body.password;
+  const valid = userChecker(email);
+  if (!email || !password || !valid) {
+    res.status(400).send("Error 400 Bad Request");
+  } else {
+    users[id] = { id, email, password };
+    res.cookie("user_id", users[id].id);
+    res.redirect("/urls");
+  }
 });
 app.get("/login", (req, res) => {
   const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
   res.render("urls_login", templateVars);
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app lisenting on port ${PORT}!`);
