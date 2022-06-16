@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cookies = require('cookie-parser');
 const PORT = 8080;
 const bodyParser = require("body-parser");
+const bcrypt = require('bcryptjs');
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
 app.use(cookies());
@@ -120,8 +121,7 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/login", (req, res) => {
   const valid = userChecker(req.body.email);
   const result = getUserByEmail(req.body.email);
-  console.log("req.body==", req);
-  if (!valid && result.password === req.body.password) {
+  if (!valid && bcrypt.compareSync(req.body.password, result.password)) {
     res.cookie("user_id", result.id);
     res.redirect("/urls");
   } else {
@@ -130,7 +130,7 @@ app.post("/login", (req, res) => {
 });
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/login");
+  res.redirect("/urls");
 });
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
@@ -139,8 +139,9 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const id = generateRandomId();
   const email = req.body.email;
-  const password = req.body.password;
+  const pass = req.body.password;
   const valid = userChecker(email);
+  const password = bcrypt.hashSync(pass, 10);
   if (!email || !password || !valid) {
     res.status(400).send("Error 400 Bad Request");
   } else {
@@ -148,6 +149,10 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", users[id].id);
     res.redirect("/urls");
   }
+
+
+
+
 });
 app.get("/login", (req, res) => {
   const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
