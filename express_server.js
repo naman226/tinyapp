@@ -49,8 +49,18 @@ const userChecker = function(email) {
   return true;
 };
 
+const urlsForUser = function(id) {
+  const obj = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key].userID === id) {
+      obj[key] = urlDatabase[key];
+    }
+  }
+  return obj;
+};
+
 app.get("/", (req, res) => {
-  res.send("hello");
+  res.redirect('/login');
 });
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -59,7 +69,10 @@ app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
+  if (!req.cookies['user_id']) {
+    res.status(400).send("<h1>User not logged in</h1>");
+  }
+  const templateVars = { user: users[req.cookies['user_id']], urls: urlsForUser(req.cookies['user_id']) };
   res.render("urls_index", templateVars);
 });
 app.get("/urls/new", (req, res) => {
@@ -90,13 +103,19 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL.longURL);
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  if (urlDatabase[req.params.shortURL].userID === req.cookies['user_id']) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  } else {
+    res.status(401).send("<h1>Operation not allowed</h>");
+  }
 });
 app.post("/urls/:shortURL", (req, res) => {
-  const newShortURL = req.params.shortURL;
-  urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: users[req.cookies['user_id']].id };
-  res.redirect(`/urls/${newShortURL}`);
+  if (urlDatabase[req.params.shortURL].userID === req.cookies['user_id']) {
+    const newShortURL = req.params.shortURL;
+    urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: users[req.cookies['user_id']].id };
+    res.redirect(`/urls/${newShortURL}`);
+  }
 });
 app.post("/login", (req, res) => {
   const valid = userChecker(req.body.email);
@@ -111,7 +130,7 @@ app.post("/login", (req, res) => {
 });
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 app.get("/register", (req, res) => {
   const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
