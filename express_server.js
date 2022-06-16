@@ -1,4 +1,5 @@
 const express = require('express');
+const { getUserByEmail, generateRandomString, generateRandomId, userChecker, urlsForUser } = require('./helpers');
 const app = express();
 const morgan = require('morgan');
 const cookies = require('cookie-session');
@@ -13,15 +14,6 @@ app.use(cookies({
 }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const generateRandomString = function() {
-  let sol = Math.random().toString(16).slice(2, 8);
-  return sol;
-};
-const generateRandomId = function() {
-  let sol = Math.random().toString(16).slice(2, 6);
-  return sol;
-};
-
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -34,34 +26,6 @@ const urlDatabase = {
 };
 
 const users = {};
-
-const getUserByEmail = function(email) {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return users[userId];
-    }
-  }
-  return null;
-};
-
-const userChecker = function(email) {
-  for (let userCheck in users) {
-    if (users[userCheck].email === email) {
-      return false;
-    }
-  }
-  return true;
-};
-
-const urlsForUser = function(id) {
-  const obj = {};
-  for (let key in urlDatabase) {
-    if (urlDatabase[key].userID === id) {
-      obj[key] = urlDatabase[key];
-    }
-  }
-  return obj;
-};
 
 app.get("/", (req, res) => {
   res.redirect('/login');
@@ -76,7 +40,7 @@ app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.status(400).send("<h1>User not logged in</h1>");
   }
-  const templateVars = { user: users[req.session.user_id], urls: urlsForUser(req.session.user_id) };
+  const templateVars = { user: users[req.session.user_id], urls: urlsForUser(req.session.user_id, urlDatabase) };
   res.render("urls_index", templateVars);
 });
 app.get("/urls/new", (req, res) => {
@@ -122,8 +86,8 @@ app.post("/urls/:shortURL", (req, res) => {
   }
 });
 app.post("/login", (req, res) => {
-  const valid = userChecker(req.body.email);
-  const result = getUserByEmail(req.body.email);
+  const valid = userChecker(req.body.email, users);
+  const result = getUserByEmail(req.body.email, users);
   if (!valid && bcrypt.compareSync(req.body.password, result.password)) {
     req.session.user_id = result.id;
     res.redirect("/urls");
@@ -143,7 +107,7 @@ app.post("/register", (req, res) => {
   const id = generateRandomId();
   const email = req.body.email;
   const pass = req.body.password;
-  const valid = userChecker(email);
+  const valid = userChecker(email, users);
   const password = bcrypt.hashSync(pass, 10);
   if (!email || !password || !valid) {
     res.status(400).send("Error 400 Bad Request");
