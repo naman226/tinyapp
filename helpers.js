@@ -4,7 +4,7 @@ const getUserByEmail = function(email, database) {
       return database[userId];
     }
   }
-  return null;
+  return undefined;
 };
 const generateRandomString = function() {
   let sol = Math.random().toString(16).slice(2, 8);
