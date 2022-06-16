@@ -19,8 +19,14 @@ const generateRandomId = function() {
 };
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
 
 const users = {};
@@ -57,21 +63,31 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 app.get("/urls/new", (req, res) => {
+  if (!users[req.cookies['user_id']]) {
+    res.redirect('/login');
+  }
   const templateVars = { user: users[req.cookies['user_id']], urls: urlDatabase };
   res.render("urls_new", templateVars);
 });
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: users[req.cookies['user_id']] };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.cookies['user_id']] };
   res.render("urls_show", templateVars);
 });
 app.post("/urls", (req, res) => {
+  if (!users[req.cookies['user_id']]) {
+    res.status(400).send("<h1>You must be logged in to create a new URL</h1>");
+  }
   const newShortURL = generateRandomString();
-  urlDatabase[newShortURL] = req.body.longURL;
+  urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: users[req.cookies['user_id']].id };
   res.redirect(`/urls/${newShortURL}`);
 });
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (!longURL) {
+    res.status(404).send("<h1>URL not found</h1>");
+    return;
+  }
+  res.redirect(longURL.longURL);
 });
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
@@ -79,12 +95,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 app.post("/urls/:shortURL", (req, res) => {
   const newShortURL = req.params.shortURL;
-  urlDatabase[newShortURL] = req.body.longURL;
+  urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: users[req.cookies['user_id']].id };
   res.redirect(`/urls/${newShortURL}`);
 });
 app.post("/login", (req, res) => {
   const valid = userChecker(req.body.email);
   const result = getUserByEmail(req.body.email);
+  console.log("req.body==", req);
   if (!valid && result.password === req.body.password) {
     res.cookie("user_id", result.id);
     res.redirect("/urls");
