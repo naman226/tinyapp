@@ -4,9 +4,9 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product Snap Shots
 
-![login page that allows users to quicky login to access their account](#)
+!["login page that allows users to quicky login to access their account"](https://github.com/naman226/tinyapp/blob/feature/user-registration/docs/login-page.png?raw=true)
 
-![urls page that displays all the urls user has created from their account.](#)
+!["urls page that displays all the urls user has created from their account."](https://github.com/naman226/tinyapp/blob/feature/user-registration/docs/urls-page.png?raw=true)
 
 ## Dependencies
 
