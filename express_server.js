@@ -28,14 +28,17 @@ const urlDatabase = {
 const users = {};
 
 app.get("/", (req, res) => {
-  res.redirect('/login');
+  res.redirect("/register");
 });
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.status(400).send("<h1>User not logged in</h1>");
@@ -43,6 +46,7 @@ app.get("/urls", (req, res) => {
   const templateVars = { user: users[req.session.user_id], urls: urlsForUser(req.session.user_id, urlDatabase) };
   res.render("urls_index", templateVars);
 });
+
 app.get("/urls/new", (req, res) => {
   if (!users[req.session.user_id]) {
     res.redirect('/login');
@@ -50,9 +54,43 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.session.user_id], urls: urlDatabase };
   res.render("urls_new", templateVars);
 });
+
 app.get("/urls/:shortURL", (req, res) => {
+  if (!users[req.session.user_id]) {
+    res.status(400).send("<h1>You must be logged in to create a new URL</h1>");
+  }
+  else if (!urlDatabase[req.params.shortURL]) {
+    return res.status(404).send("Short URL not found");
+  } else if (urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
+    return res.status(403).send("Access Denied");
+  }
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: users[req.session.user_id] };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  if (!longURL) {
+    res.status(404).send("<h1>URL not found</h1>");
+    return;
+  }
+  res.redirect(longURL);
+});
+
+app.get("/register", (req, res) => {
+  if (users[req.session.user_id]) {
+    res.redirect("/urls");
+  }
+  const templateVars = { user: users[req.session.user_id], urls: urlDatabase };
+  res.render("urls_register", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  if (users[req.session.user_id]) {
+    res.redirect("/urls");
+  }
+  const templateVars = { user: users[req.session.user_id], urls: urlDatabase };
+  res.render("urls_login", templateVars);
 });
 app.post("/urls", (req, res) => {
   if (!users[req.session.user_id]) {
@@ -62,14 +100,6 @@ app.post("/urls", (req, res) => {
   urlDatabase[newShortURL] = { longURL: req.body.longURL, userID: users[req.session.user_id].id };
   res.redirect(`/urls/${newShortURL}`);
 });
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  if (!longURL) {
-    res.status(404).send("<h1>URL not found</h1>");
-    return;
-  }
-  res.redirect(longURL.longURL);
-});
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (urlDatabase[req.params.shortURL].userID === req.session.user_id) {
     delete urlDatabase[req.params.shortURL];
@@ -78,6 +108,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
     res.status(401).send("<h1>Operation not allowed</h>");
   }
 });
+
 app.post("/urls/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL].userID === req.session.user_id) {
     const newShortURL = req.params.shortURL;
@@ -85,6 +116,7 @@ app.post("/urls/:shortURL", (req, res) => {
     res.redirect(`/urls/${newShortURL}`);
   }
 });
+
 app.post("/login", (req, res) => {
   const valid = userChecker(req.body.email, users);
   const result = getUserByEmail(req.body.email, users);
@@ -99,10 +131,7 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 });
-app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.session.user_id], urls: urlDatabase };
-  res.render("urls_register", templateVars);
-});
+
 app.post("/register", (req, res) => {
   const id = generateRandomId();
   const email = req.body.email;
@@ -117,13 +146,9 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");
   }
 });
-app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.session.user_id], urls: urlDatabase };
-  res.render("urls_login", templateVars);
-});
 
 app.listen(PORT, () => {
-  console.log(`Example app lisenting on port ${PORT}!`);
+  console.log(`Tiny app lisenting on port ${PORT}!`);
 });
 
 
