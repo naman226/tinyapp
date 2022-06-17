@@ -2,25 +2,27 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- Bootstrap CSS -->
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
     integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
-  <title>New URL - TinyApp Example</title>
+  <title>Register Now</title>
 </head>
 <body>
   <%- include('partials/_header')%>
-    <main style="margin: 1em;">
-      <h3>Create TinyURL</h3>
-      <form class="form-inline" action="/urls" method="POST">
-        <div class="form-group mb-2">
-          <label for="longURL">Enter a URL:</label>
-          <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em">
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
+    <h3>Create Account</h3>
+    <div class="card-footer text-muted" style="display: flex; width:100%; align-items: center; justify-content: center;">
+      <form method="POST" action="/register">
+        <label style="display:flex; justify-content: center;" for="email">Email:</label>
+        <input class="form-control" id="email" type="email" name="email" placeholder="email"
+          style="width: 300px; margin: 1em" />
+        <label style="display:flex; justify-content: center;" for="password">Password:</label>
+        <input class="form-control" id="password" type="password" name="password" placeholder="password"
+          style="width: 300px; margin: 1em" />
+        <button style="width: 100%;" type="submit" class="btn btn-primary">Register</button>
       </form>
-    </main>
+    </div>
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
       integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
@@ -32,4 +34,5 @@
       integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
       crossorigin="anonymous"></script>
 </body>
+
 </html>
