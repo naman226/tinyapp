@@ -58,8 +58,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   if (!users[req.session.user_id]) {
     res.status(400).send("<h1>You must be logged in to create a new URL</h1>");
-  }
-  else if (!urlDatabase[req.params.shortURL]) {
+  } else if (!urlDatabase[req.params.shortURL]) {
     return res.status(404).send("Short URL not found");
   } else if (urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
     return res.status(403).send("Access Denied");
